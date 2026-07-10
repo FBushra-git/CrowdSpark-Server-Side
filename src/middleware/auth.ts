@@ -16,11 +16,19 @@ declare global {
   }
 }
 
+export function getJwtSecret() {
+  const secret = process.env.JWT_SECRET;
+  if (!secret || secret.length < 32) {
+    throw new Error("JWT_SECRET must be set and at least 32 characters long");
+  }
+  return secret;
+}
+
 export function authenticate(req: Request, res: Response, next: NextFunction) {
   const token = req.headers.authorization?.replace("Bearer ", "");
   if (!token) return res.status(401).json({ message: "Authentication token missing" });
   try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET || "dev-secret") as AuthUser;
+    req.user = jwt.verify(token, getJwtSecret()) as AuthUser;
     next();
   } catch {
     return res.status(401).json({ message: "Invalid or expired token" });
