@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import express from "express";
 import { connectDatabase } from "./config/database.js";
 import { errorHandler } from "./middleware/error.js";
+import adminRoutes from "./routes/admin.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import campaignRoutes from "./routes/campaign.routes.js";
 import contributionRoutes from "./routes/contribution.routes.js";
@@ -23,6 +24,7 @@ app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:3000", creden
 app.use(express.json({ limit: "2mb" }));
 
 app.get("/api/health", (_req, res) => res.json({ ok: true, name: "CrowdSpark API" }));
+app.use("/api/admin", adminRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/campaigns", campaignRoutes);
 app.use("/api/contributions", contributionRoutes);
@@ -43,3 +45,4 @@ connectDatabase()
     console.error("Failed to start server", error);
     process.exit(1);
   });
+
