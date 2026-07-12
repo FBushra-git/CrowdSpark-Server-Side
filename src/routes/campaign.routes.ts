@@ -53,6 +53,13 @@ router.get("/pending", authenticate, authorize("admin"), async (_req, res, next)
   } catch (error) { next(error); }
 });
 
+router.get("/admin/all", authenticate, authorize("admin"), async (_req, res, next) => {
+  try {
+    const campaigns = await Campaign.find().sort({ createdAt: -1 });
+    res.json({ campaigns });
+  } catch (error) { next(error); }
+});
+
 router.patch("/creator/:id", authenticate, authorize("creator"), async (req, res, next) => {
   try {
     const campaign = await Campaign.findById(req.params.id);
@@ -63,6 +70,20 @@ router.patch("/creator/:id", authenticate, authorize("creator"), async (req, res
     if (typeof req.body.story === "string") updates.story = req.body.story;
     if (typeof req.body.rewardInfo === "string") updates.rewardInfo = req.body.rewardInfo;
     res.json(await Campaign.findByIdAndUpdate(req.params.id, updates, { new: true }));
+  } catch (error) { next(error); }
+});
+
+router.post("/creator/:id/updates", authenticate, authorize("creator"), async (req, res, next) => {
+  try {
+    const campaign = await Campaign.findById(req.params.id);
+    if (!campaign) return res.status(404).json({ message: "Campaign not found" });
+    if (campaign.creatorEmail !== req.user!.email) return res.status(403).json({ message: "Not authorized to update this campaign" });
+    const title = String(req.body.title || "Campaign Update").trim();
+    const message = String(req.body.message || "").trim();
+    if (!message) return res.status(400).json({ message: "Update message is required" });
+    campaign.updates.unshift({ title, message, createdAt: new Date() } as any);
+    await campaign.save();
+    res.status(201).json(campaign);
   } catch (error) { next(error); }
 });
 
@@ -154,6 +175,15 @@ router.patch("/:id/reject", authenticate, authorize("admin"), async (req, res, n
     if (!campaign) return res.status(404).json({ message: "Campaign not found" });
     await notifyCampaignStatus(campaign, "rejected");
     res.json(campaign);
+  } catch (error) { next(error); }
+});
+
+router.delete("/:id", authenticate, authorize("admin"), async (req, res, next) => {
+  try {
+    const campaign = await Campaign.findByIdAndDelete(req.params.id);
+    if (!campaign) return res.status(404).json({ message: "Campaign not found" });
+    await Contribution.updateMany({ campaignId: campaign._id }, { status: "rejected" });
+    res.json({ message: "Campaign deleted", campaign });
   } catch (error) { next(error); }
 });
 
