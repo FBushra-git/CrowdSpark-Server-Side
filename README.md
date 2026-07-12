@@ -1,11 +1,11 @@
 # CrowdSpark Server
 
-CrowdSpark Server is the TypeScript Express and MongoDB API for the CrowdSpark crowdfunding platform. It manages authentication, role-based access, campaigns, contributions, withdrawals, payments, notifications, reports, and demo data seeding.
+CrowdSpark Server is the TypeScript Express and MongoDB API for the CrowdSpark crowdfunding platform. It manages authentication, role-based authorization, campaigns, contributions, withdrawals, payments, notifications, reports, admin controls, image uploads, and demo data seeding.
 
 ## Live Links
 
-- Client live site: Coming soon
-- Server live API: Coming soon
+- Client live site: Coming soon after deployment
+- Server live API: Coming soon after deployment
 - Client repository: https://github.com/FBushra-git/CrowdSpark-Client-Side
 - Server repository: https://github.com/FBushra-git/CrowdSpark-Server-Side
 
@@ -20,21 +20,22 @@ CrowdSpark Server is the TypeScript Express and MongoDB API for the CrowdSpark c
 
 ## Key Features
 
-- TypeScript Express API designed for a production-ready MERN-style crowdfunding platform.
-- MongoDB and Mongoose data layer for users, campaigns, contributions, withdrawals, payments, notifications, and reports.
+- TypeScript Express API for a production-ready crowdfunding platform.
+- MongoDB and Mongoose models for users, campaigns, contributions, withdrawals, payments, notifications, and reports.
 - JWT authentication with protected route middleware.
-- Role-based authorization middleware for Supporter, Creator, and Admin access rules.
-- Registration flow assigns default credits based on role: Supporters receive 50 credits and Creators receive 20 credits.
-- Secure password hashing with bcryptjs.
-- Campaign API supports approved campaign listing, campaign details, creator campaign creation, and admin status updates.
-- Contribution API supports supporter contributions and creator approval or rejection workflows.
-- Withdrawal API supports creator withdrawal requests and admin payment-success updates.
-- Payment API includes a dummy payment endpoint that can be replaced or expanded with Stripe payment intents.
-- Notification API returns user-specific notifications sorted for dashboard display.
-- Report API supports supporter fraud reports and admin report review.
-- imgBB upload route is prepared for profile and campaign image hosting.
-- Demo seed data can be enabled with `SEED_DEMO_DATA=true` without overwriting existing real records.
-- Environment variables keep MongoDB, JWT, Stripe, and imgBB credentials out of source control.
+- Role-based authorization for Supporter, Creator, and Admin routes.
+- Secure bcrypt password hashing and sanitized user responses.
+- Google token verification endpoint for optional social login.
+- Campaign APIs for public approved listings, advanced filtering, campaign details, creator campaign creation, creator campaign management, and admin moderation.
+- Contribution APIs for supporter donations, paginated contribution history, creator pending-review queues, approval, rejection, refunds, and raised-credit updates.
+- Payment APIs for credit purchase simulation, payment stats, and combined purchase/withdrawal history.
+- Withdrawal APIs for creator requests, minimum credit validation, admin pending queue, approval, rejection, and creator notifications.
+- Admin APIs for platform stats, user listing, role updates, and user removal.
+- Notification APIs for user-specific notification lists, unread counts, and read status updates.
+- Report APIs for suspicious campaign reports and admin review.
+- imgBB upload endpoint using multer memory storage with image type and size validation.
+- SendGrid-compatible email notification utility with graceful fallback when keys are not configured.
+- Demo data seeding controlled by `SEED_DEMO_DATA=true`.
 
 ## Tech Stack
 
@@ -43,12 +44,12 @@ CrowdSpark Server is the TypeScript Express and MongoDB API for the CrowdSpark c
 - TypeScript
 - MongoDB
 - Mongoose
-- JSON Web Token
+- JWT
 - bcryptjs
 - Zod
 - multer
 - Axios
-- Stripe SDK
+- SendGrid-compatible email API
 
 ## Local Setup
 
@@ -65,11 +66,16 @@ The API health route is available at `http://localhost:5000/api/health`.
 ```env
 PORT=5000
 MONGODB_URI=replace_with_mongodb_connection_string
-JWT_SECRET=replace_with_long_secret
+JWT_SECRET=replace_with_long_secret_at_least_32_characters
 CLIENT_URL=http://localhost:3000
 IMGBB_API_KEY=replace_with_imgbb_key
 STRIPE_SECRET_KEY=replace_with_stripe_secret
 ADMIN_EMAIL=admin@crowdspark.dev
 ADMIN_PASSWORD=Admin@12345
+ADMIN_NOTIFICATION_EMAIL=admin@crowdspark.dev
 SEED_DEMO_DATA=false
+GOOGLE_CLIENT_ID=replace_with_google_web_client_id
+GOOGLE_CLIENT_SECRET=replace_with_google_client_secret
+SENDGRID_API_KEY=replace_with_sendgrid_key
+SENDGRID_FROM_EMAIL=no-reply@crowdspark.dev
 ```
