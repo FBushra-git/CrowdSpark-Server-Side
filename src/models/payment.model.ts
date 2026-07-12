@@ -6,6 +6,9 @@ const paymentSchema = new Schema({
   credits: { type: Number, required: true },
   amount: { type: Number, required: true },
   provider: { type: String, default: "stripe" },
+  packageId: { type: String },
+  paymentMethod: { type: String, default: "stripe" },
+  description: { type: String },
   transactionId: { type: String, required: true },
   status: { type: String, enum: ["pending", "paid", "failed"], default: "paid" }
 }, { timestamps: true });
