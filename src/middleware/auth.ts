@@ -41,3 +41,7 @@ export function authorize(...roles: UserRole[]) {
     next();
   };
 }
+
+export const requireSupporter = [authenticate, authorize("supporter")];
+export const requireCreator = [authenticate, authorize("creator")];
+export const requireAdmin = [authenticate, authorize("admin")];
