@@ -7,7 +7,6 @@ import { authenticate, getJwtSecret } from "../middleware/auth.js";
 import { User } from "../models/user.model.js";
 
 const router = Router();
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const passwordSchema = z
   .string()
@@ -16,11 +15,13 @@ const passwordSchema = z
   .regex(/[a-z]/, "Password must include a lowercase letter")
   .regex(/[0-9]/, "Password must include a number");
 
+const fallbackAvatar = "https://ui-avatars.com/api/?name=CrowdSpark&background=111111&color=ffffff";
+
 const registerSchema = z.object({
   name: z.string().min(2),
   email: z.string().email(),
   password: passwordSchema,
-  photoUrl: z.string().url(),
+  photoUrl: z.string().url().optional().or(z.literal("")),
   role: z.enum(["supporter", "creator"])
 });
 
@@ -65,7 +66,7 @@ router.post("/register", async (req, res, next) => {
       name: data.name,
       email: data.email,
       passwordHash,
-      photoUrl: data.photoUrl,
+      photoUrl: data.photoUrl || fallbackAvatar,
       role: data.role,
       authProvider: "credentials",
       credits: data.role === "creator" ? 20 : 50
@@ -91,6 +92,7 @@ router.post("/google", async (req, res, next) => {
     const clientId = process.env.GOOGLE_CLIENT_ID;
     if (!clientId) return res.status(500).json({ message: "GOOGLE_CLIENT_ID is not configured" });
 
+    const googleClient = new OAuth2Client(clientId);
     const ticket = await googleClient.verifyIdToken({ idToken: data.credential, audience: clientId });
     const payload = ticket.getPayload();
     if (!payload?.email || !payload.email_verified) return res.status(401).json({ message: "Google account email is not verified" });
@@ -102,7 +104,7 @@ router.post("/google", async (req, res, next) => {
         email: payload.email,
         passwordHash: "",
         authProvider: "google",
-        photoUrl: payload.picture || "https://i.ibb.co/6P9xV4h/avatar-creator.png",
+        photoUrl: payload.picture || fallbackAvatar,
         role: data.role,
         credits: data.role === "creator" ? 20 : 50
       });
@@ -121,3 +123,7 @@ router.get("/me", authenticate, async (req, res, next) => {
 });
 
 export default router;
+
+
+
+
