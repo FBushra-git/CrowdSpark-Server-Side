@@ -14,7 +14,28 @@ import { errorHandler } from "./middleware/error.js";
 
 export const app = express();
 
-app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:3000", credentials: true }));
+const defaultClientOrigins = [
+  "http://localhost:3000",
+  "https://crowdspark-client-side.vercel.app"
+];
+
+const allowedClientOrigins = (process.env.CLIENT_URL || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const corsOrigins = allowedClientOrigins.length ? allowedClientOrigins : defaultClientOrigins;
+
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || corsOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+    callback(new Error(`Origin ${origin} is not allowed by CORS`));
+  },
+  credentials: true
+}));
 app.use(express.json({ limit: "2mb" }));
 
 app.get("/api/health", (_req, res) => res.json({ ok: true, name: "CrowdSpark API" }));
@@ -31,3 +52,4 @@ app.use("/api/withdrawals", withdrawalRoutes);
 app.use(errorHandler);
 
 export default app;
+
